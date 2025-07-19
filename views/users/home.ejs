@@ -1,0 +1,46 @@
+<% include("../layouts/header") %>
+
+
+<h1>Welcome, <%= user.name %><!---- displays user name-->
+   <% if(user.is_verified == 1){
+    %> <img src="appImages/verified.png" alt="verification mark" style="width: 25px; height: 25px;"> <%
+   }
+   %>   <!------------------------display verification badge------------------>
+
+</h1> 
+
+
+<table border="1">
+    <tr>
+        <td colspan="2" width="">
+            <img src="userImages/<%= user.image %>" width="600px" height="300px" alt="<%= user.image %>">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Email
+        </td>
+        <td>
+            <%= user.email %>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Mobile
+        </td>
+        <td>
+            <%= user.mobile %>
+        </td>
+    </tr>
+</table>
+<br>
+
+<a href="/edit-profile?id=<%= user._id%>" target="__blank">Edit Profile</a>
+
+<br>
+
+
+<a href="/logout" class="btn">Logout</a>
+
+
+<% include("../layouts/footer") %>

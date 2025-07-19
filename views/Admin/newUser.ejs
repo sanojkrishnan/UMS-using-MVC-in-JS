@@ -1,0 +1,28 @@
+<% include("../layouts/header.ejs") %>
+
+<h1>Add New User</h1>
+
+<form action="" method="post" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Enter Name" required>
+    <br><br>
+    <input type="email" name="email" placeholder="Enter Email" required>
+    <br><br>
+    <input type="number" name="mno" placeholder="Enter Mobile Number" required>
+    <br><br>
+    <input type="file" name="image" required>
+    <br><br>
+    <input type="submit" value="Register">
+</form>
+
+<% if (typeof message !== "undefined") { %>
+  <div id="msg" style="color: red;"><%= message %></div>
+  <script>
+    setTimeout(() => {
+      document.getElementById('msg').style.display = 'none';
+    }, 3000);
+  </script>
+<% } %>              <!---------------------the message will display only for 3 seconds----->
+<br><br>
+<a href="/admin/dashboard">Back</a>
+
+<% include("../layouts/footer.ejs") %>

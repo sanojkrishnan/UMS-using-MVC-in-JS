@@ -1,0 +1,28 @@
+<% include("../layouts/header.ejs") %>
+
+
+<h1>Admin Login</h1>
+
+<% if(typeof message !== "undefined"){
+    %>
+    <h4><%= message %></h4>
+    <%
+
+}
+%>
+
+<form action="" method="post">
+
+    <input type="email" name="email" placeholder="Enter Your Email">
+    <br><br>
+    <input type="password" name="password" placeholder="Enter Your Password">
+    <br><br>
+    <input type="submit" value="login">
+
+</form>
+
+<a href="/admin/forget">Forget Password</a>
+
+
+<% include("../layouts/footer.ejs") %>
+
