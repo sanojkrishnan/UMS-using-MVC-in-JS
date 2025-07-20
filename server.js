@@ -55,6 +55,9 @@ app.set("view engine", "ejs"); // Use EJS to render views
 app.set("views", __dirname + "/views");
 
 
+//show image in home page
+const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------------------------------
 // Start the server on port 3000

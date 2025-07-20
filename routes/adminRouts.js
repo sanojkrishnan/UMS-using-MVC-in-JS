@@ -1,69 +1,91 @@
+// Import required modules
 const express = require("express");
-const adminRout = express.Router();
+const adminRout = express.Router(); // Create a new router instance for admin
 
-const session = require("express-session");
-const config = require("../config/config");
-adminRout.use(session({secret:config.sessionSec}))
+const session = require("express-session"); // Session middleware for managing sessions
+const config = require("../config/config"); // Import config for session secret
 
-const bodyParser = require("body-parser");
-adminRout.use(bodyParser.json());
-adminRout.use(bodyParser.urlencoded({extended:true}));
+// Configure and use express-session
+adminRout.use(session({ secret: config.sessionSec })); // Use session with custom secret
 
+const bodyParser = require("body-parser"); // Middleware for parsing incoming request bodies
 
-const multer = require("multer");
-const path = require("path");
+// Parse JSON and form-urlencoded data
+adminRout.use(bodyParser.json()); // Parse JSON data
+adminRout.use(bodyParser.urlencoded({ extended: true })); // Parse form data
 
-// Configure Multer storage location and filename
+const multer = require("multer"); // Middleware for handling file uploads
+const path = require("path"); // Node.js module for handling file paths
+
+// Configure Multer storage for uploaded images
 const imageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../public/userImages")); // Folder where images are saved
+    cb(null, path.join(__dirname, "../public/userImages")); // Destination folder to save images
   },
   filename: (req, file, cb) => {
-    const name = Date.now() + "-" + file.originalname; // Unique filename
-    cb(null, name);
+    const name = Date.now() + "-" + file.originalname; // Unique filename using timestamp
+    cb(null, name); // Pass filename to callback
   }
 });
 
-const upload = multer({ storage: imageStorage }); // Use the storage config
+// Initialize multer with defined storage
+const upload = multer({ storage: imageStorage }); // Set storage configuration
 
-//show image in home page
+// Make the "public" folder accessible for static assets (like images)
 adminRout.use(express.static("public"));
 
+// Import controller and middleware
+const adminController = require("../controllers/adminController"); // Admin logic
+const auth = require("../middleware/adminAuth"); // Admin authentication middleware
 
-const adminController = require("../controllers/adminController");
+// Routes
 
-const auth = require("../middleware/adminAuth");
+// GET /admin => Render login page if not logged in
+adminRout.get("/", auth.isLogout, adminController.loadLogin);
 
-adminRout.get("/",auth.isLogout, adminController.loadLogin);
+// POST /admin => Handle login form submission
+adminRout.post("/", adminController.adminVerify);
 
-adminRout.post("/",adminController.adminVerify);
-
+// GET /admin/home => Load admin dashboard (protected route)
 adminRout.get("/home", auth.isLogin, adminController.loadDashboard);
 
-adminRout.get("/logout",auth.isLogin,adminController.logoutAdmin)
+// GET /admin/logout => Log out admin (destroy session)
+adminRout.get("/logout", auth.isLogin, adminController.logoutAdmin);
 
-adminRout.get("/forget" , auth.isLogout, adminController.forgetAdminPass);
+// GET /admin/forget => Render forget password page
+adminRout.get("/forget", auth.isLogout, adminController.forgetAdminPass);
 
-adminRout.post("/forget" , adminController.forgetPassVerify);
+// POST /admin/forget => Process forget password form and send reset email
+adminRout.post("/forget", adminController.forgetPassVerify);
 
-adminRout.get("/reset-password",auth.isLogout, adminController.forgetPassLoad);
+// GET /admin/reset-password => Load reset password page using token (if not logged in)
+adminRout.get("/reset-password", auth.isLogout, adminController.forgetPassLoad);
 
-adminRout.post("/reset-password", auth.isLogout,adminController.resetPassword);
+// POST /admin/reset-password => Handle reset password form
+adminRout.post("/reset-password", auth.isLogout, adminController.resetPassword);
 
-adminRout.get("/dashboard",auth.isLogin, adminController.adminDashboard)
+// GET /admin/dashboard => Show user management dashboard
+adminRout.get("/dashboard", auth.isLogin, adminController.adminDashboard);
 
-adminRout.get("/new-user", auth.isLogin,adminController.newUser);
+// GET /admin/new-user => Show form to add a new user
+adminRout.get("/new-user", auth.isLogin, adminController.newUser);
 
-adminRout.post("/new-user",upload.single("image"),adminController.addNewUser);
+// POST /admin/new-user => Handle new user creation (with image upload)
+adminRout.post("/new-user", upload.single("image"), adminController.addNewUser);
 
-adminRout.get("/edit-user",auth.isLogin,adminController.editUserLoad);
+// GET /admin/edit-user => Load edit user form
+adminRout.get("/edit-user", auth.isLogin, adminController.editUserLoad);
 
-adminRout.post("/edit-user",adminController.updateUserValue);
+// POST /admin/edit-user => Submit edited user details
+adminRout.post("/edit-user", adminController.updateUserValue);
 
+// GET /admin/delete-user => Delete a user (by query param id)
 adminRout.get("/delete-user", adminController.deleteUserData);
 
-
+// Fallback: redirect any unmatched route to /admin
 adminRout.get(/.*/, (req, res) => {
-  res.redirect('/admin');
+  res.redirect('/admin'); // Redirect all unknown admin paths to login
 });
+
+// Export admin routes to be used in app.js
 module.exports = adminRout;

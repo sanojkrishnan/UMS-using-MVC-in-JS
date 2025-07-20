@@ -6,7 +6,7 @@ const config = require("../config/config"); // App config (email credentials etc
 const randomString = require("randomstring"); // To generate tokens for reset link
 
 //----------------------------------------------
-// 🔐 Secure password using bcrypt
+//  Secure password using bcrypt
 const securePassword = async (password) => {
   try {
     const passwordHash = await bcrypt.hash(password, 10);
@@ -17,7 +17,7 @@ const securePassword = async (password) => {
 };
 
 //----------------------------------------------
-// 📧 Send verification email
+//  Send verification email
 const sendVerifyMail = async (name, email, user_id) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -51,7 +51,7 @@ const sendVerifyMail = async (name, email, user_id) => {
 };
 
 //----------------------------------------------
-// 👤 Load registration page
+//  Load registration page
 const loadRegister = async (req, res) => {
   try {
     return res.render("users/registration");
@@ -61,7 +61,7 @@ const loadRegister = async (req, res) => {
 };
 
 //----------------------------------------------
-// 💾 Register new user
+//  Register new user
 const insertUser = async (req, res) => {
   try {
     const sPassword = await securePassword(req.body.password);
@@ -94,7 +94,7 @@ const insertUser = async (req, res) => {
 };
 
 //----------------------------------------------
-// ✅ Email verification link logic
+//  Email verification link logic
 const verifyMail = async (req, res) => {
   try {
     await User.updateOne({ _id: req.query.id }, { $set: { is_verified: 1 } });
@@ -105,7 +105,7 @@ const verifyMail = async (req, res) => {
 };
 
 //----------------------------------------------
-// ✅ Email verification through login page
+//  Email verification through login page
 const verificationLoad = async (req, res) => {
   try {
     res.render("users/verification");
@@ -115,7 +115,7 @@ const verificationLoad = async (req, res) => {
 };
 
 //---------------------------------------------
-//send verification email ( post )
+//  send verification email ( post )
 const sendVerification = async (req, res) => {
   try {
     const mailToVerify = req.body.email;
@@ -136,7 +136,7 @@ const sendVerification = async (req, res) => {
 };
 
 //----------------------------------------------
-// 🔑 Load login page
+//  Load login page
 const loginLoad = async (req, res) => {
   try {
     return res.render("users/login");
@@ -146,24 +146,20 @@ const loginLoad = async (req, res) => {
 };
 
 //----------------------------------------------
-// 🚪 Logout user and destroy session
+//  Logout user and destroy session
 const userLogout = async (req, res) => {
   try {
-    req.session.destroy((err) => {
-      if (err) {
-        console.log(err.message);
-        return res.status(500).send("Logout failed");
-      }
-      res.clearCookie("connect.sid"); // Name of the session cookie (by default it will be in "connect.sid" )
-      return res.redirect("/login"); // redirect to /login from the /logout page which is not valid
-    });
+    //  Only logs out user, keeps admin session
+    delete req.session.user_id; // Destroy admin session
+    res.redirect("/login"); // Redirect to login
   } catch (error) {
     console.log(error.message);
   }
 };
 
+
 //----------------------------------------------
-// 🔐 Verify user login
+//  Verify user login
 const verifyLogin = async (req, res) => {
   try {
     const Email = req.body.email;
@@ -197,7 +193,7 @@ const verifyLogin = async (req, res) => {
 };
 
 //----------------------------------------------
-// 🏠 Load home page (after login)
+//  Load home page (after login)
 const loadHome = async (req, res) => {
   try {
     const userData = await User.findById({ _id: req.session.user_id });
@@ -242,7 +238,7 @@ const updateProfile = async(req, res) => {
 };
 
 //----------------------------------------------
-// 🧠 Load forget password page
+//  Load forget password page
 const forgetLoad = async (req, res) => {
   try {
     return res.render("users/forget");
@@ -252,7 +248,7 @@ const forgetLoad = async (req, res) => {
 };
 
 //----------------------------------------------
-// 📧 Send password reset link
+//  Send password reset link
 const forgetLink = async (req, res) => {
   try {
     const email = req.body.email;
@@ -278,7 +274,7 @@ const forgetLink = async (req, res) => {
 };
 
 //----------------------------------------------
-// 📧 Send reset password email
+//  Send reset password email
 const sendResetPasswordMail = async (name, email, token) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -312,7 +308,7 @@ const sendResetPasswordMail = async (name, email, token) => {
 };
 
 //----------------------------------------------
-// 🔓 Load reset password form using token
+// Load reset password form using token
 const forgetPasswordLoad = async (req, res) => {
   try {
     const token = req.query.token;
@@ -329,7 +325,7 @@ const forgetPasswordLoad = async (req, res) => {
 };
 
 //----------------------------------------------
-// 🔐 Save new password
+//  Save new password
 const resetPassword = async (req, res) => {
   try {
     const newPassword = req.body.password;
@@ -349,21 +345,21 @@ const resetPassword = async (req, res) => {
 };
 
 //----------------------------------------------
-// 📦 Export all controller functions
+//  Export all controller functions
 module.exports = {
-  loadRegister,
-  insertUser,
-  verifyMail,
-  loginLoad,
-  verifyLogin,
-  loadHome,
-  forgetLoad,
-  forgetLink,
-  forgetPasswordLoad,
-  resetPassword,
-  userLogout,
-  verificationLoad,
-  sendVerification,
-  editLoad,
-  updateProfile
+  loadRegister,   //line 55
+  insertUser,   //line 65
+  verifyMail,    //line 98
+  loginLoad,    //line 140
+  verifyLogin,   //line 163
+  loadHome,    //line 197
+  forgetLoad,   //line 242
+  forgetLink,  //line 252
+  forgetPasswordLoad,  //line 312
+  resetPassword,   //line 329
+  userLogout,     //line 150
+  verificationLoad,   //line 109
+  sendVerification,   //line 119
+  editLoad,     //line 208
+  updateProfile    //line 226
 };

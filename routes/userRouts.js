@@ -39,18 +39,6 @@ const upload = multer({ storage: imageStorage }); // Use the storage config
 // Import user controller that handles logic
 const userController = require("../controllers/userController");
 
-//show image in home page
-userRout.use(express.static("public"));
-
-//to access icons
-userRout.use(express.static("views"));
-
-
-
-
-
-
-
 
 
 // ------------------ 🔐 AUTH & USER ROUTES ------------------ //
