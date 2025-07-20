@@ -308,7 +308,7 @@ const adminDashboard = async (req, res) => {
       users = await User.find({ is_admin: 0 });
 
       return res.render("Admin/dashboard", {
-        users,
+        users,verification
       });
     }
   } catch (error) {
@@ -340,7 +340,7 @@ const addNewUser = async (req, res) => {
 
     const sPassword = await securePassword(password); // Hash it
 
-    const user = new User({
+    const user = new User({  //update it into DB
       name: name,
       email: email,
       mobile: mobile,

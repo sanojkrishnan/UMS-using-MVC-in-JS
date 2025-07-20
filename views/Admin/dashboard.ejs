@@ -3,18 +3,24 @@
     <div class="header">
         <h1>dashboard</h1>
 
-        <!-- Search form to filter users -->
-        <form action="/admin/dashboard" method="get">
-            <input type="search" name="search" placeholder="search here"><br>
+        <% let selectedVerification; try { selectedVerification=typeof verification !=='undefined' ? verification : 3; }
+            catch (e) { selectedVerification=3; } %> <!---helps for verification-->
 
-            <label for="verification-1">verified</label>
-            <input type="radio" id="verification-1" name="verify" value="1" <%if(verification==1){%>checked<%}%>><br> 
-            <label for="verification-2">not verified</label>
-            <input type="radio" id="verification-2" name="verify" value="0" <%if(verification==0){%>checked<%}%>><br> 
-            <label for="verification-3">both</label>
-            <input type="radio" id="verification-3" name="verify" value="3" <%if(verification==3){%>checked<%}else if(isNaN(verification)){%>checked<%}%>><br> 
-            <input type="submit" value="Search">
-        </form>
+            <!-- Search form to filter users -->
+            <form action="/admin/dashboard" method="get">
+                <input type="search" name="search" placeholder="search here"><br>
+
+                <label for="verification-1">verified</label>
+                <input type="radio" id="verification-1" name="verify" value="1" <%if(selectedVerification==1){%>checked<%}%>
+                    ><br>
+                    <label for="verification-2">not verified</label>
+                    <input type="radio" id="verification-2" name="verify" value="0" <%if(selectedVerification==0){%>checked<%}%>
+                        ><br>
+                        <label for="verification-3">both</label>
+                        <input type="radio" id="verification-3" name="verify" value="3" <%if(selectedVerification==3||isNaN(selectedVerification)){%>checked
+                        <%}%>><br>
+                                <input type="submit" value="Search">
+            </form>
     </div>
 
     <!-- Link to add a new user -->
