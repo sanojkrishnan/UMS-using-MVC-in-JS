@@ -1,90 +1,99 @@
 <% include("../layouts/header.ejs") %>
-    <h1>dashboard</h1>
+    <div class="header">
+        <h1>dashboard</h1>
+
+
+        <form action="/admin/dashboard" method="get">
+            <input type="search" name="search" placeholder="search here">
+            <input type="submit" value="Search">
+        </form>
+    </div>
 
 
     <a href="/admin/new-user">Add New User</a><br><br>
 
 
-    <% if (typeof message !== "undefined") { %>
-  <div id="msg" style="color: red;"><%= message %></div>
-  <script>
-    setTimeout(() => {
-      document.getElementById('msg').style.display = 'none';
-    }, 3000);
-  </script>
-<% } %>
+    <% if (typeof message !=="undefined" ) { %>
+        <div id="msg" style="color: red;">
+            <%= message %>
+        </div>
+        <script>
+            setTimeout(() => {
+                document.getElementById('msg').style.display = 'none';
+            }, 3000);
+        </script>
+        <% } %>
 
-%>
-<br><br>
-
-
-
-    <table width="50%" border="1">
-        <tr>
-            <th>
-                name
-            </th>
-            <th>
-                email
-            </th>
-            <th>
-                mobile
-            </th>
-            <th>
-                image
-            </th>
-            <th>
-                is verified
-            </th>
-            <th>
-                action
-            </th>
-
-        </tr>
+            <br><br>
 
 
-        <% if(users.length>0){
-            for(let i=0 ; i < users.length;i++){ %>
+
+            <table width="50%" border="1">
                 <tr>
-                    <td>
-                        <%=users[i].name %>
-                    </td>
-                    <td>
-                        <%=users[i].email %>
-                    </td>
-                    <td>
-                        <%=users[i].mobile %>
-                    </td>
-                    <td>
-                        <img src="/userImages/<%=users[i].image %>" alt="<%=users[i].image %>" width="100px"
-                            height="100px">
-                    </td>
-                    <td>
-                        <% if (users[i].is_verified==1) { %>
-                            <p style="color: green;">verified</p>
-                            <% } else { %>
-                                <p style="color: red;">not verified</p>
-                         <% } %>
-                    </td>
-                    <td>
-                        <a href="/admin/edit-user?id=<%=users[i]._id %>">Edit</a>
-                        <a href="/admin/delete-user?id=<%=users[i]._id %>">Delete</a>
-                        
-                    </td>
+                    <th>
+                        name
+                    </th>
+                    <th>
+                        email
+                    </th>
+                    <th>
+                        mobile
+                    </th>
+                    <th>
+                        image
+                    </th>
+                    <th>
+                        is verified
+                    </th>
+                    <th>
+                        action
+                    </th>
+
                 </tr>
-                <% } } else{ %>
-                    <tr>
-                        <td colspan="5">
-                            User not found
-                        </td>
-                    </tr>
-                    <% } %>
-
-    </table>
-
-    <br>
-    <br>
-    <a href="/admin/home">Home</a>
 
 
-    <% include("../layouts/footer.ejs") %>
+                <% if(users.length>0){
+                    for(let i=0 ; i < users.length;i++){ %>
+                        <tr>
+                            <td>
+                                <%=users[i].name %>
+                            </td>
+                            <td>
+                                <%=users[i].email %>
+                            </td>
+                            <td>
+                                <%=users[i].mobile %>
+                            </td>
+                            <td>
+                                <img src="/userImages/<%=users[i].image %>" alt="<%=users[i].image %>" width="100px"
+                                    height="100px">
+                            </td>
+                            <td>
+                                <% if (users[i].is_verified==1) { %>
+                                    <p style="color: green;">verified</p>
+                                    <% } else { %>
+                                        <p style="color: red;">not verified</p>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <a href="/admin/edit-user?id=<%=users[i]._id %>">Edit</a>
+                                <a href="/admin/delete-user?id=<%=users[i]._id %>">Delete</a>
+
+                            </td>
+                        </tr>
+                        <% } } else{ %>
+                            <tr>
+                                <td colspan="5">
+                                    User not found
+                                </td>
+                            </tr>
+                            <% } %>
+
+            </table>
+
+            <br>
+            <br>
+            <a href="/admin/home">Home</a>
+
+
+            <% include("../layouts/footer.ejs") %>
