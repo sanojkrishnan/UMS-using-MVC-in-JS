@@ -55,7 +55,7 @@ app.set("view engine", "ejs"); // Use EJS to render views
 app.set("views", __dirname + "/views");
 
 
-//show image in home page
+//show image in home page also the icons
 const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 

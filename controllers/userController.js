@@ -73,9 +73,9 @@ const insertUser = async (req, res) => {
       image: req.file.filename,
       password: sPassword,
       is_admin: 0,
-    });
+    });           //upload user
 
-    const userData = await user.save();
+    const userData = await user.save();  //save user
 
     if (userData) {
       sendVerifyMail(req.body.name, req.body.email, userData._id); // Send verification email
@@ -150,7 +150,7 @@ const loginLoad = async (req, res) => {
 const userLogout = async (req, res) => {
   try {
     //  Only logs out user, keeps admin session
-    delete req.session.user_id; // Destroy admin session
+    delete req.session.user_id; // delete user session only
     res.redirect("/login"); // Redirect to login
   } catch (error) {
     console.log(error.message);
