@@ -3,10 +3,15 @@ const isLogin = async (req, res, next) => {
   try {
     // Check if session has admin_id set (i.e., admin is logged in)
     if (req.session.admin_id) {
-      // ✅ Admin is logged in, proceed to the next middleware or route handler
+      // Admin is logged in, proceed to the next middleware or route handler
+       //  Disable caching for authenticated pages
+      // 🔒 Prevent caching for protected routes
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache"); // For older HTTP/1.0 clients
+    res.setHeader("Expires", "0");       // Force expiry
       next();
     } else {
-      // ❌ Not logged in, redirect to admin login page
+      // Not logged in, redirect to admin login page
       res.redirect("/admin");
     }
   } catch (error) {
@@ -22,7 +27,7 @@ const isLogout = async (req, res, next) => {
     if (req.session.admin_id) {
       res.redirect("/admin/home");
     } else {
-      // ✅ Not logged in, allow access to login/forget/reset pages
+      // Not logged in, allow access to login/forget/reset pages
       next();
     }
   } catch (error) {

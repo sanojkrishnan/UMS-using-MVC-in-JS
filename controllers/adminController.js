@@ -1,56 +1,13 @@
 // Import required modules
 const User = require("../models/userModel"); // User model schema
-const bcrypt = require("bcrypt"); // Library for hashing passwords
 const randomString = require("randomstring"); // Generates random strings (tokens/passwords)
-const config = require("../config/config"); // App configuration (email, etc.)
-const nodemailer = require("nodemailer"); // Node.js module to send emails
+const bcrypt = require("bcrypt"); // Library for hashing passwords
+const sPassword = require("../security/security");
+const securePassword = sPassword.securePassword;
 
-// Hash the password securely using bcrypt
-const securePassword = async (password) => {
-  try {
-    const passwordHash = await bcrypt.hash(password, 10); // Hashing password with salt round 10
-    return passwordHash; // Return hashed password
-  } catch (error) {
-    console.log(error.message); // Log error if hashing fails
-  }
-};
+const emailHandler = require("../mail handler/mailer"); //email handle
 
-// Send email to user after being added by admin
-const addUserMail = async (name, email, password, user_id) => {
-  try {
-    // Create transporter using Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: config.emailUser, // Sender email
-        pass: config.emailPassword, // Sender password
-      },
-    });
 
-    // Email content with verification link and login credentials
-    const mailOptions = {
-      from: config.emailUser,
-      to: email,
-      subject: "user verification from the admin side",
-      html: `<p>Hi ${name}, please click here to <a href="http://localhost:3000/verify?id=${user_id}">verify</a></p><br><br>
-      <p>Your username and password is<b> ${password} </b> </p>`,
-    };
-
-    // Send the email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error); // Log if error in sending
-      } else {
-        console.log("Email has been sent", info.response); // Log success
-      }
-    });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
 
 // Send password reset email with token link
 const sendResetPasswordMail = async (name, email, token) => {
@@ -78,13 +35,13 @@ const sendResetPasswordMail = async (name, email, token) => {
     // Send the email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.log(error);
+        console.error(error);
       } else {
         console.log("Email has been sent", info.response);
       }
     });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -93,7 +50,7 @@ const loadLogin = async (req, res) => {
   try {
     res.render("Admin/login"); // Render login view
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -133,7 +90,7 @@ const adminVerify = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -143,7 +100,7 @@ const loadDashboard = async (req, res) => {
     const userData = await User.findById({ _id: req.session.admin_id }); // Get admin details by session
     res.render("Admin/home", { admin: userData });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     S; // Typo, unused
   }
 };
@@ -155,7 +112,7 @@ const logoutAdmin = async (req, res) => {
     delete req.session.admin_id; // Destroy admin session
     res.redirect("/admin"); // Redirect to login
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -164,7 +121,7 @@ const forgetAdminPass = async (req, res) => {
   try {
     res.render("Admin/forget-password");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -195,7 +152,7 @@ const forgetPassVerify = async (req, res) => {
       res.render("Admin/forget-password", { message: "Email is incorrect" });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -210,7 +167,7 @@ const forgetPassLoad = async (req, res) => {
       res.render("Admin/404", { message: "Invalid" }); // Invalid token
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -229,7 +186,7 @@ const resetPassword = async (req, res) => {
 
     return res.redirect("/admin"); // Redirect to login
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -285,7 +242,8 @@ const adminDashboard = async (req, res) => {
       }
 
       return res.render("Admin/dashboard", {
-        users,verification,
+        users,
+        verification,
         message:
           users.length > 0 ? "Search results:" : "No user matched your search",
       });
@@ -299,7 +257,8 @@ const adminDashboard = async (req, res) => {
       }
 
       return res.render("Admin/dashboard", {
-        users,verification,
+        users,
+        verification,
         message:
           users.length > 0 ? "Search results:" : "No user matched your search",
       });
@@ -308,11 +267,12 @@ const adminDashboard = async (req, res) => {
       users = await User.find({ is_admin: 0 });
 
       return res.render("Admin/dashboard", {
-        users,verification
+        users,
+        verification,
       });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.render("Admin/dashboard", {
       users: [],
       message: "Something went wrong",
@@ -325,7 +285,7 @@ const newUser = async (req, res) => {
   try {
     res.render("Admin/newUser");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -337,10 +297,13 @@ const addNewUser = async (req, res) => {
     const mobile = req.body.mno;
     const image = req.file.filename; // Uploaded file name
     const password = randomString.generate(8); // Auto-generate password
+    const mailContent = `<p>Hi ${name}, please click here to <a href="http://localhost:3000/verify?id=${user_id}">verify</a></p><br><br>
+      <p>Your username and password is<b> ${password} </b> </p>`
 
     const sPassword = await securePassword(password); // Hash it
 
-    const user = new User({  //update it into DB
+    const user = new User({
+      //update it into DB
       name: name,
       email: email,
       mobile: mobile,
@@ -352,13 +315,13 @@ const addNewUser = async (req, res) => {
     const userData = await user.save();
 
     if (userData) {
-      addUserMail(name, email, password, userData._id); // Send email to new user
+      emailHandler.sendVerifyMail( email, mailContent); // Send email to new user
       res.redirect("/admin/dashboard");
     } else {
       res.render("/admin/new-user", { message: "Something Went wrong" });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -373,7 +336,7 @@ const editUserLoad = async (req, res) => {
       res.redirect("/admin/dashboard");
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -393,7 +356,7 @@ const updateUserValue = async (req, res) => {
     );
     res.redirect("/admin/dashboard");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -405,7 +368,7 @@ const deleteUserData = async (req, res) => {
     const users = await User.find(); // Reload all users
     return res.render("Admin/dashboard", { users, message: `User Deleted` });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 

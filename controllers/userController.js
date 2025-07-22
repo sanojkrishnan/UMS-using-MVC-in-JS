@@ -1,54 +1,14 @@
 // Importing required modules
 const User = require("../models/userModel");
-const bcrypt = require("bcrypt"); // For hashing passwords
-const nodemailer = require("nodemailer"); // For sending emails
 const config = require("../config/config"); // App config (email credentials etc.)
 const randomString = require("randomstring"); // To generate tokens for reset link
+const session = require("express-session");
+const bcrypt = require("bcrypt"); //password management
 
-//----------------------------------------------
-//  Secure password using bcrypt
-const securePassword = async (password) => {
-  try {
-    const passwordHash = await bcrypt.hash(password, 10);
-    return passwordHash;
-  } catch (error) {
-    console.log(error.message);
-  }
-};
+const sPassword = require("../security/security"); //password checker
+const securePassword = sPassword.securePassword;
 
-//----------------------------------------------
-//  Send verification email
-const sendVerifyMail = async (name, email, user_id) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: config.emailUser,
-        pass: config.emailPassword,
-      },
-    });
-
-    const mailOptions = {
-      from: config.emailUser,
-      to: email,
-      subject: "For Verification",
-      html: `<p>Hi ${name}, please click here to <a href="http://localhost:3000/verify?id=${user_id}">verify</a></p>`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email has been sent", info.response);
-      }
-    });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
+const emailHandler = require("../mail handler/mailer"); //email handle
 
 //----------------------------------------------
 //  Load registration page
@@ -56,7 +16,7 @@ const loadRegister = async (req, res) => {
   try {
     return res.render("users/registration");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -73,12 +33,13 @@ const insertUser = async (req, res) => {
       image: req.file.filename,
       password: sPassword,
       is_admin: 0,
-    });           //upload user
+    }); //upload user
 
-    const userData = await user.save();  //save user
+    const userData = await user.save(); //save user
+    const mailContent = `<p>Hi ${userData.name}, please click here to <a href="http://localhost:3000/verify?id=${userData._id}">verify</a></p>`;
 
     if (userData) {
-      sendVerifyMail(req.body.name, req.body.email, userData._id); // Send verification email
+      emailHandler.sendVerifyMail(req.body.email, mailContent); // Send verification email
       return res.render("users/registration", {
         message:
           "Your Registration has been successful, please verify the email",
@@ -89,7 +50,7 @@ const insertUser = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -100,7 +61,7 @@ const verifyMail = async (req, res) => {
     await User.updateOne({ _id: req.query.id }, { $set: { is_verified: 1 } });
     return res.render("users/email-verified");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -110,7 +71,7 @@ const verificationLoad = async (req, res) => {
   try {
     res.render("users/verification");
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -120,9 +81,10 @@ const sendVerification = async (req, res) => {
   try {
     const mailToVerify = req.body.email;
     const userData = await User.findOne({ email: mailToVerify });
+    const mailContent = `<p>Hi ${userData.name}, please click here to <a href="http://localhost:3000/verify?id=${userData._id}">verify</a></p>`;
 
     if (userData) {
-      sendVerifyMail(userData.name, userData.email, userData._id);
+      emailHandler.sendVerifyMail(userData.email, mailContent);
 
       res.render("users/verification", { message: `Go check your email` });
     } else {
@@ -131,7 +93,7 @@ const sendVerification = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -139,9 +101,9 @@ const sendVerification = async (req, res) => {
 //  Load login page
 const loginLoad = async (req, res) => {
   try {
-    return res.render("users/login");
+    res.render("users/login");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -153,18 +115,17 @@ const userLogout = async (req, res) => {
     delete req.session.user_id; // delete user session only
     res.redirect("/login"); // Redirect to login
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
-
 
 //----------------------------------------------
 //  Verify user login
 const verifyLogin = async (req, res) => {
   try {
     const Email = req.body.email;
-    const Password = req.body.password
-    const userData = await User.findOne({ email: Email}); // it will work when two people try to make login with same email and deferent password
+    const Password = req.body.password;
+    const userData = await User.findOne({ email: Email }); // it will work when two people try to make login with same email and deferent password
 
     if (userData) {
       const passwordMatch = await bcrypt.compare(Password, userData.password);
@@ -188,7 +149,7 @@ const verifyLogin = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -199,7 +160,7 @@ const loadHome = async (req, res) => {
     const userData = await User.findById({ _id: req.session.user_id });
     return res.render("users/home", { user: userData }); //show user name
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -209,7 +170,7 @@ const editLoad = async (req, res) => {
   try {
     const id = req.query.id;
 
-    const userData = await User.findById({ _id:id });
+    const userData = await User.findById({ _id: id });
 
     if (userData) {
       res.render("users/editUser", { user: userData });
@@ -217,23 +178,41 @@ const editLoad = async (req, res) => {
       res.redirect("/home");
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
 //----------------------------------------------
 //update edited profile data in the DB
-const updateProfile = async(req, res) => {
-  try{
-    if(req.file){
-      const newData = await User.findByIdAndUpdate({_id: req.body.user_id}, {$set:{image:req.file.filename, name:req.body.name, email:req.body.email, mobile:req.body.mno}});
+const updateProfile = async (req, res) => {
+  try {
+    if (req.file) {
+      const newData = await User.findByIdAndUpdate(
+        { _id: req.body.user_id },
+        {
+          $set: {
+            image: req.file.filename,
+            name: req.body.name,
+            email: req.body.email,
+            mobile: req.body.mno,
+          },
+        }
+      );
+    } else {
+      const newData = await User.findByIdAndUpdate(
+        { _id: req.body.user_id },
+        {
+          $set: {
+            name: req.body.name,
+            email: req.body.email,
+            mobile: req.body.mno,
+          },
+        }
+      );
     }
-    else{
-      const newData = await User.findByIdAndUpdate({_id: req.body.user_id}, {$set:{name:req.body.name, email:req.body.email, mobile:req.body.mno}});
-    };
     res.redirect("/home");
-  }catch(error){
-    console.log(Error.message);
+  } catch (error) {
+    console.error(Error.message);
   }
 };
 
@@ -243,7 +222,7 @@ const forgetLoad = async (req, res) => {
   try {
     return res.render("users/forget");
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -253,6 +232,8 @@ const forgetLink = async (req, res) => {
   try {
     const email = req.body.email;
     const userData = await User.findOne({ email: email });
+    const randomStr = randomString.generate();
+    const mailContent = `<p>Hi ${userData.name}, please click here to <a href="http://localhost:3000/forget-password?token=${randomStr}">recover your account</a></p>`;
 
     if (userData) {
       if (userData.is_verified === 0) {
@@ -260,50 +241,15 @@ const forgetLink = async (req, res) => {
           message: "Please verify your mail",
         });
       } else {
-        const randomStr = randomString.generate();
         await User.updateOne({ email: email }, { $set: { token: randomStr } });
-        sendResetPasswordMail(userData.name, userData.email, randomStr);
+        emailHandler.sendVerifyMail(userData.email, mailContent);
         return res.render("users/forget", { message: `Check your Email` });
       }
     } else {
       return res.render("users/forget", { message: `Sorry, user not found` });
     }
   } catch (error) {
-    console.log(error.message);
-  }
-};
-
-//----------------------------------------------
-//  Send reset password email
-const sendResetPasswordMail = async (name, email, token) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: config.emailUser,
-        pass: config.emailPassword,
-      },
-    });
-
-    const mailOptions = {
-      from: config.emailUser,
-      to: email,
-      subject: "For Account Recovery",
-      html: `<p>Hi ${name}, please click here to <a href="http://localhost:3000/forget-password?token=${token}">recover your account</a></p>`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email has been sent", info.response);
-      }
-    });
-  } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -320,7 +266,7 @@ const forgetPasswordLoad = async (req, res) => {
       return res.render("users/404", { message: "User not found" });
     }
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
@@ -340,26 +286,26 @@ const resetPassword = async (req, res) => {
 
     return res.render("users/login", { message: "Try the new password..." });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
   }
 };
 
 //----------------------------------------------
 //  Export all controller functions
 module.exports = {
-  loadRegister,   //line 55
-  insertUser,   //line 65
-  verifyMail,    //line 98
-  loginLoad,    //line 140
-  verifyLogin,   //line 163
-  loadHome,    //line 197
-  forgetLoad,   //line 242
-  forgetLink,  //line 252
-  forgetPasswordLoad,  //line 312
-  resetPassword,   //line 329
-  userLogout,     //line 150
-  verificationLoad,   //line 109
-  sendVerification,   //line 119
-  editLoad,     //line 208
-  updateProfile    //line 226
+  loadRegister, //line 55
+  insertUser, //line 65
+  verifyMail, //line 98
+  loginLoad, //line 140
+  verifyLogin, //line 163
+  loadHome, //line 197
+  forgetLoad, //line 242
+  forgetLink, //line 252
+  forgetPasswordLoad, //line 312
+  resetPassword, //line 329
+  userLogout, //line 150
+  verificationLoad, //line 109
+  sendVerification, //line 119
+  editLoad, //line 208
+  updateProfile, //line 226
 };

@@ -82,7 +82,6 @@ userRout.get("/logout", userController.userLogout)
 
 
 
-
 // ------------------ 🔐 FORGOT PASSWORD FLOW ------------------ //
 
 // Load forget password page
@@ -96,9 +95,6 @@ userRout.get("/forget-password", auth.isLogout, userController.forgetPasswordLoa
 
 // Handle new password submission
 userRout.post("/forget-password", userController.resetPassword);
-
-// Export the router to be used in server.js
-module.exports = userRout;
 
 
 
@@ -116,3 +112,8 @@ userRout.get("/edit-profile", auth.isLogin, userController.editLoad);
 //updating edited values in DB
 
 userRout.post("/edit-profile",upload.single("image"),userController.updateProfile);
+
+
+
+// Export the router to be used in server.js
+module.exports = userRout;

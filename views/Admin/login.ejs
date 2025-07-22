@@ -26,5 +26,15 @@
 <a href="/register">Go back</a>
 
 
+<script>
+  // Force a reload from server if user comes via back/forward button
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted || (window.performance && performance.navigation.type === 2)) {
+      window.location.reload(); // Reload to trigger session check
+    }
+  });
+</script>
+
+
 <% include("../layouts/footer.ejs") %>
 
