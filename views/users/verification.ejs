@@ -1,0 +1,28 @@
+<% include("../layouts/header.ejs")%>
+
+<h1>For verification</h1>
+
+<% if (typeof message !== "undefined") { %>
+  <div id="msg" style="color: red;"><%= message %></div>
+  <script>
+    setTimeout(() => {
+      document.getElementById('msg').style.display = 'none';
+    }, 5000);
+  </script>
+<% } %>
+
+%>
+
+<form action="/verification" method="post">
+    <br><br>
+
+    <input type="email" name="email" placeholder="enter email" required>
+    <br><br>
+    <input type="submit" value="Send Verification Mail" >
+
+
+
+</form><br>
+
+
+<% include("../layouts/footer.ejs")%>

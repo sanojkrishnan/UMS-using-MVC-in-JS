@@ -1,0 +1,115 @@
+<% include("../layouts/header.ejs") %> <!-- Include common header layout -->
+
+    <div class="header">
+        <h1>dashboard</h1>
+
+        <% let selectedVerification; try { selectedVerification=typeof verification !=='undefined' ? verification : 3; }
+            catch (e) { selectedVerification=3; } %> <!---helps for verification-->
+
+            <!-- Search form to filter users -->
+            <form action="/admin/dashboard" method="get">
+                <input type="search" name="search" placeholder="search here"><br>
+
+                <label for="verification-1">verified</label>
+                <input type="radio" id="verification-1" name="verify" value="1" <%if(selectedVerification==1){%>checked
+                <%}%>
+                    ><br>
+                    <label for="verification-2">not verified</label>
+                    <input type="radio" id="verification-2" name="verify" value="0"
+                        <%if(selectedVerification==0){%>checked<%}%>
+                        ><br>
+                        <label for="verification-3">both</label>
+                        <input type="radio" id="verification-3" name="verify" value="3"
+                            <%if(selectedVerification==3||isNaN(selectedVerification)){%>checked
+                        <%}%>><br>
+                            <input type="submit" value="Search">
+            </form>
+    </div>
+
+    <!-- Link to add a new user -->
+    <a href="/admin/new-user">Add New User</a><br><br>
+
+    <!-- Display a message if one exists (e.g., user added, deleted, etc.) -->
+    <% if (typeof message !=="undefined" ) { %>
+        <div id="msg" style="color: red;">
+            <%= message %>
+        </div>
+        <script>
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                document.getElementById('msg').style.display = 'none';
+            }, 3000);
+        </script>
+        <% } %>
+
+            <br><br>
+
+            <!-- User data table -->
+            <table width="50%" border="1">
+                <tr>
+                    <th>name</th>
+                    <th>email</th>
+                    <th>mobile</th>
+                    <th>image</th>
+                    <th>is verified</th>
+                    <th>action</th>
+                </tr>
+
+                <!-- If users exist, loop and display them -->
+                <% if (users.length> 0) {
+                    for (let i = 0; i < users.length; i++) { %>
+                        <tr>
+                            <td>
+                                <%= users[i].name %>
+                            </td>
+                            <td>
+                                <%= users[i].email %>
+                            </td>
+                            <td>
+                                <%= users[i].mobile %>
+                            </td>
+                            <td>
+                                <!-- Show user image from public/userImages -->
+                                <img src="/userImages/<%= users[i].image %>" alt="<%= users[i].image %>" width="100px"
+                                    height="100px">
+                            </td>
+                            <td>
+                                <!-- Show verification status -->
+                                <% if (users[i].is_verified==1) { %>
+                                    <p style="color: green;">verified</p>
+                                    <% } else { %>
+                                        <p style="color: red;">not verified</p>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <!-- Edit and Delete buttons -->
+                                <a href="/admin/edit-user?id=<%= users[i]._id %>">Edit</a>
+                                <a href="/admin/delete-user?id=<%= users[i]._id %>">Delete</a>
+                            </td>
+                        </tr>
+                        <% } } else { %>
+                            <!-- If no users found -->
+                            <tr>
+                                <td colspan="5">
+                                    User not found
+                                </td>
+                            </tr>
+                            <% } %>
+            </table>
+
+            <br><br>
+
+            <!-- Link to return to admin home -->
+            <a href="/admin/home">Home</a>
+
+
+            <script>
+                // Force a reload from server if user comes via back/forward button
+                window.addEventListener("pageshow", function (event) {
+                    if (event.persisted || (window.performance && performance.navigation.type === 2)) {
+                        window.location.reload(); // Reload to trigger session check
+                    }
+                });
+            </script>
+
+            <% include("../layouts/footer.ejs") %> <!-- Include common footer layout -->

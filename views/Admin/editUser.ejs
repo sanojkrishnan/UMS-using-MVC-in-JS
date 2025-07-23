@@ -1,0 +1,41 @@
+<% include("../layouts/header.ejs") %> <!-- Include the shared header layout -->
+
+<h1>Edit User</h1>
+
+<!-- Form to update user details -->
+<form action="" method="post">
+
+    <!-- Name input pre-filled with existing user name -->
+    <input type="name" name="name" placeholder="Enter Name" value="<%= user.name %>" required>
+    <br><br>
+
+    <!-- Email input pre-filled with existing user email -->
+    <input type="email" name="email" placeholder="Enter email" value="<%= user.email %>" required>
+    <br><br>
+
+    <!-- Mobile number input pre-filled with existing user mobile -->
+    <input type="text" name="mno" placeholder="Enter Mobile" value="<%= user.mobile %>" required>
+    <br><br>
+
+    <!-- Radio buttons for verification status -->
+    <label for="verify">Verified</label>
+    <input type="radio" id="verify" name="verify" value="1" 
+        <% if(user.is_verified == 1){ %> checked <% } %>><br>
+
+    <label for="unverify">Not Verified</label>
+    <input type="radio" id="unverify" name="verify" value="0" 
+        <% if(user.is_verified == 0){ %> checked <% } %>>
+    <br><br>
+
+    <!-- Hidden field to keep user ID in the form -->
+    <input type="hidden" name="id" value="<%= user._id %>">
+
+    <!-- Submit button to update the user -->
+    <input type="submit" value="Update User">
+
+</form>
+
+<!-- Link back to admin dashboard -->
+<a href="/admin">Go to dashboard</a>
+
+<% include("../layouts/footer.ejs") %> <!-- Include the shared footer layout -->
