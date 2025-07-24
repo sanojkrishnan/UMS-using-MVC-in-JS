@@ -6,7 +6,7 @@ const isLogin = async (req, res, next) => {
   try {
     // If session does NOT exist, user is not logged in
     if (!req.session.admin_id) {
-      return res.redirect("/"); // Redirect to login
+      return res.redirect("/admin/login"); // Redirect to login
     }
 
     // Prevent caching of authenticated pages
@@ -26,7 +26,7 @@ const isLogout = async (req, res, next) => {
   try {
     // If session exists, user is logged in — prevent access to login/register
     if (req.session.admin_id) {
-      return res.redirect("/home");
+      return res.redirect("/admin/home");
     }
 
     // Optional: Prevent caching here too if needed

@@ -3,12 +3,11 @@ const express = require("express");
 const session = require("express-session");
 const userRout = express.Router(); // Create a new router instance for user-related routes
 
-// Load configuration (email & session secret)
-const config = require("../config/config");
-
 // Set up session middleware to handle login sessions
 userRout.use(session({
-  secret: config.sessionSec
+  secret: "yourSecretKey",         // required
+  resave: false,                   // don't save session if unmodified
+  saveUninitialized: false         // don't create session until something stored
 }));
 
 // Import custom auth middleware for login/logout checks

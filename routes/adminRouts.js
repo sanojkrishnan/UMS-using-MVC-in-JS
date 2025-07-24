@@ -3,10 +3,12 @@ const express = require("express");
 const adminRout = express.Router(); // Create a new router instance for admin
 
 const session = require("express-session"); // Session middleware for managing sessions
-const config = require("../config/config"); // Import config for session secret
-
 // Configure and use express-session
-adminRout.use(session({ secret: config.sessionSec })); // Use session with custom secret
+adminRout.use(session({
+  secret: "yourSecretKey",         // required
+  resave: false,                   // don't save session if unmodified
+  saveUninitialized: false         // don't create session until something stored
+}));
 
 const bodyParser = require("body-parser"); // Middleware for parsing incoming request bodies
 
